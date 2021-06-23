@@ -1,0 +1,165 @@
+---
+layout: post
+title:  "AUC"
+date:   2021-06-23 16:05:15 +0800
+categories: jekyll update
+---
+
+<head>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+            inlineMath: [['$','$']]
+            }
+        });
+    </script>
+</head>
+
+### AUC
+
+在推荐和二分类问题中，AUC是一个常用指标，但是它的含义却不像准确率那样直观；在这一节，我们将给出AUC的两种定义，并证明这两个定义之间的等价性；最后通过AUC与其他指标的对比来说明它的优势。
+
+#### 定义一
+
+首先引入混淆矩阵的概念。在二分类问题中，根据数据点（data point）的真实label和模型预测出的label，我们可以把数据点分为四类：真正例、假正例、真负例，假负例，组成下面的混淆矩阵
+
+| Predicted label\True label | Positive           | Negative            |
+| -------------------------- | ------------------ | ------------------- |
+| **Positive**               | True Positive(TP)  | False Positive (FP) |
+| **Negative**               | False Negative(FP) | True Negative (TN)  |
+
+根据这些概念，我们可以定义两个指标：
+
+* 用$P$表示真实label为正的数据点的集合，$N$表示真实label为负的数据点的集合；
+
+* 真正率（True Positive Rate, TPR）：
+  
+  
+  
+  $$
+  TPR=\frac{TP}{TP+FN}=\frac{TP}{|P|}
+  $$
+  
+  
+  
+  这就是我们常说的召回率（recall），它代表了所有真实的正例中被我们辨识为正例的比例（即“召回”的比例）；显然，我们希望这个指标越大越好；
+  
+* 假正率（False Positive Rate, FPR）:
+  
+  
+  
+  $$
+  FPR=\frac{FP}{FP+TN}=\frac{FP}{|N|}
+  $$
+  
+  
+  
+  它代表了负例被误认为正例的比例，对于这个指标，我们希望它越小越好；
+
+机器学习模型的直接输出，往往是一个实数（score），而不是离散的label，因此我们需要一个阈值（threshold）来把连续的score离散化为label，即
+
+
+
+$$
+predicted\_label=
+\begin{cases}
+Positive ,score>threshold\\
+Negative,else
+\end{cases}
+$$
+
+
+
+即使我们固定模型不变，随着threshold的变化，很多数据点的label也会发生变化，从而引起$TPR$和$FPR$的变化，如果我们以$FPR$为横坐标，$TPR$为纵坐标，每个threshold的取值就会对应于坐标系下的一个点，我们将threshold从0持续变化到1，就可以绘制出一条曲线；这条曲线就被称为ROC curve(Receiver's operating characteristic curve)，曲线下的面积就被称为ROC AUC（Area Under Curve），简称AUC。这就是我们常用的AUC的标准定义。
+
+![Receiver operating characteristic example](https://scikit-learn.org/stable/_images/sphx_glr_plot_roc_001.png)
+
+#### 定义二
+
+在阅读论文的过程中，我们常常会见到AUC的另一种定义：
+
+用$s_M(x)$表示模型M对数据点$x$的评分，那么:
+
+
+
+$$
+AUC=\frac{|\{(n,p)|n\in N,p\in P,s_M(p)>s_M(n)\}|}{|N||P|}
+$$
+
+
+
+#### 两种定义的等价性证明
+
+我们从定义一出发，直接推导出定义二，从而证明两种定义的等价性。
+
+当我们将threshold的值取为1，所有的数据点都会被判断为负例，此时的$TPR$和$FPR$都是0，所以所有的ROC曲线都会经过$(0,0)$点。随着threshold的值逐渐下降，逐渐会有一些数据点本划分为正例。在threshold逐渐减小的过程中，根据定义式()()，每当有一个正例的score超过threshold，就会有
+
+
+
+$$
+TPR+=\frac{1}{|P|}
+$$
+
+
+
+这意味着曲线上的点向上移动了$1/ \lvert P\rvert$个单位长度；同样，每当有一个负例的score超过threshold，就会有
+
+
+
+$$
+FPR+=\frac{1}{|N|}
+$$
+
+
+
+这意味着曲线上的点向右移动了$1/\lvert N\rvert$个单位长度，这时，就会有一个矩形出现；第$$i$$个小矩形的面积为
+
+
+
+$$
+S_i=\frac{|\{p|p\in P,s_M(p)>s_M(n_i)\}|}{|P|}\times\frac{1}{|N|}
+$$
+
+
+
+当threshold的值从1变化到0，会先后产生$\lvert N\rvert$个小矩形，总面积即为$AUC$，故:
+
+
+
+$$
+AUC=\sum_{i=1}^{|N|}S_i=\frac{|\{(n,p)|n\in N,p\in P,s_M(p)>s_M(n)\}|}{|N||P|}
+$$
+
+
+
+证完。
+
+#### AUC与其他指标的比较
+
+我们通过具体的例子来说明AUC相对准确率的优势：
+
+假设数据集的类别极度不平衡，共计100个数据点中有98个负例和仅仅2个正例，而模型的预测方式也非常简单粗暴，不管什么数据统统输出0.4，阈值设置为0.5，这样我们就得到了下面的混淆矩阵：
+
+| Predicted label\True label | Positive | Negative |
+| -------------------------- | -------- | -------- |
+| **Positive**               | 0        | 0        |
+| **Negative**               | 2        | 98       |
+
+经过简单的计算可以得到，模型预测的准确率达到了0.98，可以说相当不错。但是我们都知道，这样的模型毫无用处，对正例和负例没有任何分辨能力。带入到具体场景中，假设我们的场景是根据患者在医院的检验结果判断他是否患有某项发病率较低的疾病，这样的模型作为判断策略显然会导致所有有病的患者被诊断为正常，从而引发及其严重的后果。
+
+显然这份数据的$AUC$是0，很好地展示出了这个模型毫无辨别能力的特性。
+
+同时，我们可以注意到，计算准确率等指标依赖于一个人工选取阈值，同一个模型在不同的阈值下会有不同的准确率；而$AUC$的计算则不依赖于具体的阈值，能更好地反应一个模型的综合性能。
+
+#### AUC与LogLoss的不一致性
+
+AUC与LogLoss虽然都反映了模型在数据集合上的预测能力，但是偏重点有所不同；因此，模型A的AUC比模型B高，但是LogLoss也比模型B高的情况是完全可能存在的。下面通过一个具体的例子说明
+
+| 模型/数据点 | 1(+) | 2(-) | 3(-) | 4(-) | AUC  | LogLoss |
+| ----------- | ---- | ---- | ---- | ---- | ---- | ------- |
+| A           | 0.7  | 0.69 | 0.5  | 0.5  | 1    | 2.14    |
+| B           | 0.7  | 0.71 | 0.1  | 0.1  | 0.67 | 1.80    |
+
+这种情况的出现其实主要说明的是这两种指标的关注点不同，AUC更关注各个数据点得分之间的排名关系，或者说相对大小，而不关心预测出的具体数值，即使A把对234这三个负例的预测值再降低，A的AUC也不会有任何变化；与之不同的LogLoss则关心预测出的具体数值，它永远会随着正例的预测分数更靠近1、负例的预测分数更靠近0而降低。一般情况下，很难给出两种理念哪种更好的结论，所以大部分CTR预估算法论文中都会同时给出算法在这两个指标上的表现。不过，推荐系统中CTR预估的结果往往最终被用于给物料排序，以决定呈现给用户哪些物料以及物料的顺序，AUC与这个目标更加直接相关，因此实验中往往更加看重AUC指标。
