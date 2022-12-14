@@ -30,8 +30,8 @@ hugo new site zzhpro.github.io
 ```
 安装主题
 ```bash
-cd zzhpro.github.io/themes
-git clone https://github.com/kakawait/hugo-tranquilpeak-theme.git
+cd zzhpro.github.io
+git submodule add https://github.com/kakawait/hugo-tranquilpeak-theme.git themes/hugo-tranquilpeak-theme
 ```
 编辑配置文件`config.toml`，修改图片、侧边栏排版等；参考[文档](https://github.com/kakawait/hugo-tranquilpeak-theme/blob/master/docs/user.md)
 创建新的post
@@ -55,9 +55,10 @@ hugo server -D
 ```
 如果不在posts开头的yaml配置中指定summary，他就会为你自动生成一段，这就会导致home页面很丑，因此建议设置summary。
 
-#### 部署到Githu Pages
-不同于Jekyll，Hugo项目无法直接被Github理解，需要用Github Actions来部署；
+传统的代码高亮不起作用，需要用新写法：
+![p1](https://github.com/zzhpro/zzhpro.github.io/raw/main/static/images/p1.png)
+{{< codeblock "codeblockname" "cpp" "http://underscorejs.org/#compact" "tabname" >}}
+{{< /codeblock >}}
 
-```C++
-std::vector<int> a(100, 0);
-```
+#### 部署到Githu Pages
+不同于Jekyll，Hugo项目无法直接被Github理解，需要用Github Actions来部署；直接在setting/Pages中图形化操作即可；
