@@ -57,7 +57,7 @@ hugo server -D
 
 传统的代码高亮不起作用，需要用新写法：
 ![p1](https://github.com/zzhpro/zzhpro.github.io/raw/main/static/images/p1.png)
-{{< codeblock "codeblockname" "cpp" "http://underscorejs.org/#compact" "tabname" >}}
+{{< codeblock "codeblockname" "cpp">}}
 {{< /codeblock >}}
 
 #### 部署到Githu Pages
